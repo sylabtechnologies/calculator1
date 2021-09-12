@@ -1,104 +1,119 @@
-/// clearly TRACK BETTER, BETTER RULE AND DIVIDE
-//  DESING BETTER ALGO
-
-//!
-// finally got it BETTER DESIGN ON ENCLOSING BRACKETS
-// ! ie design PUSH SPACE OPERATION brilliant
-
-///// return make!
-/// if only one element - return it
-/// push out spaces!
-
-///// AND ELEGANT SOLUTION = SKIP (   "(1+(4-(7)-(3-(8)))"
+/// win shift arrow 
+/// s = token
 
 package calculator1;
 import java.util.*;
 
 class Solution 
 {
+    private enum TokenType { NUMBER, OPER, LEFTBRACE};
+    private Stack<String> stack = new Stack<>();
+    
     public int calculate(String s) 
     {
-        Stack<String> stk = new Stack<>();
-        
         char arr[] = s.trim().toCharArray();
         
-        boolean isop = false;
-        StringBuilder token = new StringBuilder();
-        if (arr[0] == '+' || arr[0] == '-') arr[0] = ' ';
-        if (arr[0] == '(')
-        {
-            arr[0] = ' ';
-            arr[arr.length - 1] = ' ';
-        }
-            
+        TokenType tty = TokenType.LEFTBRACE;
+        StringBuilder curr = new StringBuilder();
+
         for (char c : arr) 
         {
             if (c == ' ') continue;
             
-            if (c == '(')
+            if (c == '(') 
             {
-                stk.push(token.toString());
-                isop = false;
-                token.delete(0, token.length());
+                tty = TokenType.LEFTBRACE;
+                flush(curr);
+                continue;
             }
-            else if (c == ')')
-            {
-                stk.push(token.toString());
-                isop = false;
-                token.delete(0, token.length());
-                stk.push(Integer.toString(calc(stk)));
-            }
-            else 
-            {
-                if (Character.isDigit(c))
-                {
-                    if (isop)
-                    {
-                        stk.push(token.toString());
-                        isop = false;
-                        token.delete(0, token.length());
-                    }
-                }
-                else
-                {
-                    isop = true;
-                    stk.push(token.toString());
-                    token.delete(0, token.length());
-                }
 
-                token.append(c);
-            }
-            
-            if (!stk.isEmpty() && stk.peek().isEmpty()) 
+            if (c == ')') 
             {
-                System.out.println("empty " + stk);
+                if (isop(curr.charAt(0))) 
+                    throw new IllegalArgumentException();
+                
+                tty = TokenType.LEFTBRACE;
+                flush(curr);
+                
+                int interim = mycalc();
+                flush(new StringBuilder(Integer.toString(interim)));
+                
+                continue;
             }
+
+            if (isop(c))
+            {
+                if (tty == TokenType.NUMBER)
+                    flush(curr);
+                tty = TokenType.OPER;
+            }
+            else
+            {
+                if (tty == TokenType.OPER)
+                    flush(curr);
+                tty = TokenType.NUMBER;
+            }
+                
+            curr.append(c);
         }
         
-        if (token.length() != 0) stk.push(token.toString());
-        
-        return calc(stk);
+        flush(curr);
+        return mycalc();
     }
 
-    private int calc(Stack<String> s) 
+    private int mycalc() 
     {
-        System.out.println(s);
-        int res = Integer.parseInt(s.pop());
+        System.out.println(stack);
         
-        while (!s.isEmpty())
+        while (!stack.isEmpty())
         {
-            String op = s.pop();
-            if (op.equals("+"))
-                res += Integer.parseInt(s.pop());
-            else if (op.equals("-"))
-                res = Integer.parseInt(s.pop()) - res;
+            int rh = Integer.parseInt(stack.pop());
+            char op = stack.pop().charAt(0);
+            
+            int sign = 1;
+            if (op == '+')
+                sign = 1;
+            else if (op == '-')
+                sign = -1;
             else
                 throw new IllegalArgumentException();
+            
+            int lh = Integer.parseInt(stack.pop());
+
+            int res = lh + sign*rh;
+            System.out.println(" = " + res);
+            
+            if (stack.peek().equals("("))
+                stack.pop();
+
+            if (stack.isEmpty())
+            {
+                stack.push(Integer.toString(res));
+                break;
+            }
+            
+            stack.push(Integer.toString(res));
         }
         
-        System.out.println(res);
-        return res;
+        return 0;
     }
+    
+    private void flush(StringBuilder curr) 
+    {
+        if (curr.length() == 0) return;
+        
+        stack.push(curr.toString());
+        curr.delete(0, curr.length());
+    }
+    
+    private boolean isop(char c)
+    {
+        if (c == '+' || c == '-')
+            return true;
+        else
+            return false;
+    }
+    
 }
 public class Calculator1
 {
