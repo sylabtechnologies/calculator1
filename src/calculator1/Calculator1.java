@@ -1,67 +1,66 @@
-/// win shift arrow 
-/// s = token
+// abstract frequent ops
+// totally get the states
 
 package calculator1;
-import java.util.*;
 
 class Solution 
 {
-    private enum TokenType { NUMBER, OPER, LEFTBRACE};
-    private Stack<String> stack = new Stack<>();
+    private MyStack stack = new MyStack();
     
     public int calculate(String s) 
     {
         char arr[] = s.trim().toCharArray();
         
-        TokenType tty = TokenType.LEFTBRACE;
+        TokenType state = TokenType.LEFTBRACE;
         StringBuilder curr = new StringBuilder();
 
         for (char c : arr) 
         {
             if (c == ' ') continue;
             
+            /// (1+(4-(7)-(3-(8)))
             if (c == '(') 
             {
-                tty = TokenType.LEFTBRACE;
-                flush(curr);
+                state = TokenType.LEFTBRACE;
+                stack.flush(curr);
                 continue;
             }
 
             if (c == ')') 
             {
-                if (isop(curr.charAt(0))) 
+                if (MyStack.isop(curr.charAt(0))) 
                     throw new IllegalArgumentException();
                 
-                tty = TokenType.LEFTBRACE;
-                flush(curr);
+                state = TokenType.LEFTBRACE;
+                stack.flush(curr);
                 
-                int interim = mycalc();
-                flush(new StringBuilder(Integer.toString(interim)));
+                int interim = exec();
+                stack.flush(new StringBuilder(Integer.toString(interim)));
                 
                 continue;
             }
 
-            if (isop(c))
+            if (MyStack.isop(c))
             {
-                if (tty == TokenType.NUMBER)
-                    flush(curr);
-                tty = TokenType.OPER;
+                if (state == TokenType.NUMBER)
+                    stack.flush(curr);
+                state = TokenType.OPER;
             }
             else
             {
-                if (tty == TokenType.OPER)
-                    flush(curr);
-                tty = TokenType.NUMBER;
+                if (state == TokenType.OPER)
+                    stack.flush(curr);
+                state = TokenType.NUMBER;
             }
                 
             curr.append(c);
         }
         
-        flush(curr);
-        return mycalc();
+        stack.flush(curr);
+        return exec();
     }
 
-    private int mycalc() 
+    private int exec() 
     {
         System.out.println(stack);
         
@@ -95,23 +94,7 @@ class Solution
             stack.push(Integer.toString(res));
         }
         
-        return 0;
-    }
-    
-    private void flush(StringBuilder curr) 
-    {
-        if (curr.length() == 0) return;
-        
-        stack.push(curr.toString());
-        curr.delete(0, curr.length());
-    }
-    
-    private boolean isop(char c)
-    {
-        if (c == '+' || c == '-')
-            return true;
-        else
-            return false;
+        return stack.top();
     }
     
 }
